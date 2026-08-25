@@ -53,8 +53,18 @@ async function handleImageProxy(request, url, corsHeaders) {
   // 构建 TMDB 图片 URL
   const imageUrl = `https://image.tmdb.org${imagePath}`
   
+  // ========== 仅修改这里：移除donggua‑tv自带的请求头，添加防盗链Referer ==========
+  const newHeaders = new Headers(request.headers);
+  newHeaders.delete("X‑TMDB‑API‑Key");
+  newHeaders.set("Referer", "https://www.themoviedb.org");
+  // ==========================================================================
+
   // 获取图片
-  const response = await fetch(imageUrl)
+  const response = await fetch(imageUrl, {
+    method: request.method,
+    headers: newHeaders,
+    redirect: "follow"
+  })
   
   if (!response.ok) {
     return new Response(JSON.stringify({ 
