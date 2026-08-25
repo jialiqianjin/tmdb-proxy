@@ -4,3 +4,7 @@ main = "worker.js"
 
 # 不再在这里设置 API 密钥
 # 密钥将通过环境变量注入
+
+[[kv_namespaces]]
+binding = "TMDB_CACHE"
+id = "6a0a426ad9a746d6ba5200fb9bc08fb0"
