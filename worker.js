@@ -14,8 +14,8 @@ export default {
     try {
       const url = new URL(request.url)
       
-      // 图片代理处理
-      if (url.pathname.startsWith('/image/')) {
+      // 适配冬瓜TV原生 /t/p/ 图片路径，移除/image前缀判断
+      if (url.pathname.startsWith('/t/p/')) {
         return await handleImageProxy(request, url, corsHeaders)
       }
       
@@ -39,9 +39,8 @@ export default {
 
 // 处理图片代理
 async function handleImageProxy(request, url, corsHeaders) {
-  // 从路径中提取图片路径
-  // 格式: /image/path/to/image.jpg 或 /image/t/p/w500/abc123.jpg
-  const imagePath = url.pathname.replace('/image', '')
+  // 直接使用原生/t/p路径，不再截取/image
+  const imagePath = url.pathname
   
   if (!imagePath) {
     return new Response(JSON.stringify({ error: 'Image path required' }), {
@@ -53,11 +52,10 @@ async function handleImageProxy(request, url, corsHeaders) {
   // 构建 TMDB 图片 URL
   const imageUrl = `https://image.tmdb.org${imagePath}`
   
-  // ========== 仅修改这里：移除donggua‑tv自带的请求头，添加防盗链Referer ==========
+  // 防盗链头设置，解决401
   const newHeaders = new Headers(request.headers);
-  newHeaders.delete("X‑TMDB‑API‑Key");
+  newHeaders.delete("X-TMDB-API-Key");
   newHeaders.set("Referer", "https://www.themoviedb.org");
-  // ==========================================================================
 
   // 获取图片
   const response = await fetch(imageUrl, {
