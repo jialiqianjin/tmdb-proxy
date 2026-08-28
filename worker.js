@@ -5,12 +5,10 @@ export default {
       'Access-Control-Allow-Methods': 'GET, HEAD, POST, OPTIONS',
       'Access-Control-Allow-Headers': '*',
     }
-
     // 处理预检请求
     if (request.method === 'OPTIONS') {
       return new Response(null, { headers: corsHeaders })
     }
-
     try {
       const url = new URL(request.url)
       
@@ -21,7 +19,6 @@ export default {
       
       // API 代理处理
       return await handleApiProxy(request, url, env, corsHeaders)
-
     } catch (error) {
       return new Response(JSON.stringify({ 
         error: 'Proxy error', 
@@ -36,7 +33,6 @@ export default {
     }
   }
 }
-
 // 处理图片代理
 async function handleImageProxy(request, url, corsHeaders) {
   // 直接使用原生/t/p路径，不再截取/image
@@ -48,7 +44,6 @@ async function handleImageProxy(request, url, corsHeaders) {
       headers: { 'Content-Type': 'application/json', ...corsHeaders }
     })
   }
-
   // 构建 TMDB 图片 URL
   const imageUrl = `https://image.tmdb.org${imagePath}`
   
@@ -56,7 +51,6 @@ async function handleImageProxy(request, url, corsHeaders) {
   const newHeaders = new Headers(request.headers);
   newHeaders.delete("X-TMDB-API-Key");
   newHeaders.set("Referer", "https://www.themoviedb.org");
-
   // 获取图片
   const response = await fetch(imageUrl, {
     method: request.method,
@@ -73,8 +67,7 @@ async function handleImageProxy(request, url, corsHeaders) {
       headers: { 'Content-Type': 'application/json', ...corsHeaders }
     })
   }
-
-  // 创建响应并设置正确的 Content-Type
+  // 创建响应并设置正确的 Content‑Type
   const contentType = response.headers.get('content-type') || 'image/jpeg'
   const imageBuffer = await response.arrayBuffer()
   
@@ -87,11 +80,15 @@ async function handleImageProxy(request, url, corsHeaders) {
     }
   })
 }
-
 // 处理 API 代理
 async function handleApiProxy(request, url, env, corsHeaders) {
   let apiPath = url.pathname
-  
+
+  // 新增：剔除donggua‑tv带过来多余的 /3 前缀，防止双重/3
+  if(apiPath.startsWith("/3")){
+    apiPath = apiPath.slice(2);
+  }
+
   // 去掉代理前缀
   if (apiPath.startsWith('/proxy')) {
     apiPath = apiPath.replace('/proxy', '')
@@ -110,7 +107,6 @@ async function handleApiProxy(request, url, env, corsHeaders) {
   }
   
   const apiUrl = `https://api.themoviedb.org/3${apiPath}?${searchParams}`
-
   const response = await fetch(apiUrl, {
     method: request.method,
     headers: {
@@ -118,11 +114,9 @@ async function handleApiProxy(request, url, env, corsHeaders) {
       'Content-Type': 'application/json',
     }
   })
-
   const modifiedResponse = new Response(response.body, response)
   Object.entries(corsHeaders).forEach(([key, value]) => {
     modifiedResponse.headers.set(key, value)
   })
-
   return modifiedResponse
 }
